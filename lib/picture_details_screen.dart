@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 
 class PictureDeatilsScreen extends StatefulWidget {
@@ -13,7 +14,6 @@ class PictureDeatilsScreen extends StatefulWidget {
   bool isSelectedCrime = false;
   bool isSelectedFire = false;
   bool isSelectedEmergency = false;
-
   PageController pageController = PageController(initialPage: 0);
 
   PictureDeatilsScreen({
@@ -29,9 +29,13 @@ class PictureDeatilsScreen extends StatefulWidget {
 }
 
 class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
+  TextEditingController nameController = TextEditingController();
+  TextEditingController phoneNumberController = TextEditingController();
+
   void setSelectedRadio(int radio) {
     setState(() {
       widget.selectedRadio = radio;
+
     });
 
   }
@@ -68,6 +72,148 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
         }
       }
     });
+  }
+
+  List<String> imageUrls = [
+    'images/byo.jpg',
+    'images/health.jpg',
+    'images/lemon.jpg',
+    'images/ong.jpg',
+  ];
+
+  Widget buildImage(int imageIndex) {
+    return FutureBuilder(
+      future: FirebaseStorage.instance.ref(imageUrls[imageIndex]).getDownloadURL(),
+      builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.data != null) {
+            return Image.network(
+              snapshot.data!,
+              width: 100,
+              height: 100,
+            );
+          } else {
+            return const Text("이미지를 찾을 수 없습니다.");
+          }
+        } else {
+          return CircularProgressIndicator();
+        }
+      },
+    );
+  }
+
+  Widget buildRadioButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        // 라디오 버튼 1
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Radio(
+              value: 1,
+              groupValue: widget.selectedRadio,
+              onChanged: (value) {
+                setSelectedRadio(value!);
+              },
+            ),
+            const Text(
+              "라디오 버튼 1",
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+        // 라디오 버튼 2
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Radio(
+              value: 2,
+              groupValue: widget.selectedRadio,
+              onChanged: (value) {
+                setSelectedRadio(value!);
+              },
+            ),
+            const Text(
+              "라디오 버튼 2",
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget buildPage(int pageIndex) {
+    switch (pageIndex) {
+      case 0:
+        return buildPageOne();
+      case 1:
+        return buildPageTwo();
+    // 필요에 따라 더 많은 페이지를 추가할 수 있습니다.
+      default:
+        return Container();
+    }
+  }
+
+  Widget buildPageOne() {
+    return Container(
+      margin: const EdgeInsets.all(10.0),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(
+          Radius.circular(10),
+        ),
+        color: Colors.white,
+      ),
+      child: PageView.builder(
+        itemCount: 1,
+        itemBuilder: (BuildContext context, int index) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 페이지 1의 내용을 여기에 추가
+              // 선택한 옵션에 따라 다르게 표시될 내용을 추가하세요.
+
+              // 이미지 표시
+              buildImage(0),
+
+              // 라디오 버튼 표시
+              buildRadioButtons(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget buildPageTwo() {
+    return Container(
+      margin: const EdgeInsets.all(10.0),
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.all(
+          Radius.circular(10),
+        ),
+        color: Colors.white,
+      ),
+      child: PageView.builder(
+        itemCount: 1,
+        itemBuilder: (BuildContext context, int index) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 페이지 2의 내용을 여기에 추가
+              // 선택한 옵션에 따라 다르게 표시될 내용을 추가하세요.
+
+              // 이미지 표시
+              buildImage(1),
+
+              // 라디오 버튼 표시
+              buildRadioButtons(),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -289,17 +435,50 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                 children:[
+                                                  FutureBuilder(
+                                                    future: FirebaseStorage.instance.ref(imageUrls[0]).getDownloadURL(),
+                                                    builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                                                      print ("Image URL: ${snapshot.data}");
+                                                      if (snapshot.connectionState == ConnectionState.done) {
 
-                                                  Image.network(
-                                                  'https://via.placeholder.com/150', // 이미지 URL로 대체해주세요
-                                                  width: 150,
-                                                  height: 100,
+                                                        if(snapshot.data != null) {
+                                                          return Image.network(
+                                                            snapshot.data!,
+                                                            width: 100,
+                                                            height: 100,
+                                                          );
+                                                        } else {
+                                                          return const Text ("이미지를 찾을 수 없습니다.");
+                                                        }
+
+                                                      } else {
+                                                        return CircularProgressIndicator(); // 로딩 중 표시
+                                                      }
+                                                    },
                                                   ),
-                                                  Image.network(
-                                                  'https://via.placeholder.com/150', // 이미지 URL로 대체해주세요
-                                                  width: 150,
-                                                  height: 100,
+
+                                                  FutureBuilder(
+                                                    future: FirebaseStorage.instance.ref(imageUrls[1]).getDownloadURL(),
+                                                    builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.done) {
+
+                                                        if(snapshot.data != null) {
+                                                          return Image.network(
+                                                            snapshot.data!,
+                                                            width: 50,
+                                                            height: 50,
+                                                          );
+                                                        } else {
+                                                          return const Text ("이미지를 찾을 수 없습니다.");
+                                                        }
+
+                                                      } else {
+                                                        return CircularProgressIndicator(); // 로딩 중 표시
+                                                      }
+                                                    },
                                                   ),
+
+
                                                 ],
                                               ),
 
@@ -354,20 +533,51 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                               ),
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                children:[
+                                                children: [
+                                                  FutureBuilder(
+                                                    future: FirebaseStorage.instance.ref(imageUrls[2]).getDownloadURL(),
+                                                    builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.done) {
 
-                                                  Image.network(
-                                                    'https://via.placeholder.com/150', // 이미지 URL로 대체해주세요
-                                                    width: 150,
-                                                    height: 100,
+                                                        if(snapshot.data != null) {
+                                                          return Image.network(
+                                                            snapshot.data!,
+                                                            width: 50,
+                                                            height: 50,
+                                                          );
+                                                        } else {
+                                                          return const Text ("이미지를 찾을 수 없습니다.");
+                                                        }
+
+                                                      } else {
+                                                        return CircularProgressIndicator(); // 로딩 중 표시
+                                                      }
+                                                    },
                                                   ),
-                                                  Image.network(
-                                                    'https://via.placeholder.com/150', // 이미지 URL로 대체해주세요
-                                                    width: 150,
-                                                    height: 100,
+                                                  FutureBuilder(
+                                                    future: FirebaseStorage.instance.ref(imageUrls[3]).getDownloadURL(),
+                                                    builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.done) {
+
+                                                        if(snapshot.data != null) {
+                                                          return Image.network(
+                                                            snapshot.data!,
+                                                            width: 50,
+                                                            height: 50,
+                                                          );
+                                                        } else {
+                                                          return const Text ("이미지를 찾을 수 없습니다.");
+                                                        }
+
+                                                      } else {
+                                                        return CircularProgressIndicator(); // 로딩 중 표시
+                                                      }
+                                                    },
                                                   ),
                                                 ],
                                               ),
+
+
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                 children: [
@@ -482,33 +692,62 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                               ),
                             ),
                             const SizedBox(height: 12,),
-                            const SizedBox(
-                              width: 300,
-                              child: TextField(
-                                obscureText: false,
-                                maxLength: 20,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "이름",
-                                  isDense: true,
-                                  filled: true,
-                                  fillColor: Colors.white,
+                            Row(
+                              children: [
+                                Text(
+                                  '이름       ',
+                                  style: TextStyle(fontSize: 15.0),
                                 ),
-                              ),
+                                SizedBox(width: 10.0),
+                                Flexible(
+                                  child: TextField(
+                                    controller: nameController,
+                                    decoration: InputDecoration(
+                                      labelText: '이름을 입력해주세요.',
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.emailAddress,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(
-                              width: 300,
-                              child: TextField(
-                                obscureText: true,
-                                maxLength: 20,
-                                decoration: InputDecoration(
-                                  border: OutlineInputBorder(),
-                                  labelText: "전화번호",
-                                  isDense: true,
-                                  filled: true,
-                                  fillColor: Colors.white,
+
+                            SizedBox(height: 15.0),
+
+                            Row(
+                              children: [
+                                Text(
+                                  '전화번호',
+                                  style: TextStyle(fontSize: 15.0),
                                 ),
-                              ),
+                                SizedBox(width: 10.0),
+                                Flexible(
+                                  child: TextField(
+                                    controller: phoneNumberController,
+                                    decoration: InputDecoration(
+                                      labelText: '전화번호를 입력해주세요.',
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.phone,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 12,),
                             ElevatedButton(

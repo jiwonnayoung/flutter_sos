@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 bool _sos = false;
 
@@ -13,10 +15,14 @@ class Messenger extends StatefulWidget {
   State<Messenger> createState() => _MessengerState();
 }
 class _MessengerState extends State<Messenger> {
+
   TextEditingController reportController = TextEditingController();
   TextEditingController attachmentController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
+
+
+
 
   final String targetPhoneNumber = '112';
   XFile? _image;
@@ -28,6 +34,21 @@ class _MessengerState extends State<Messenger> {
   XFile? _imageFile;
 
   bool isCameraActive = false;
+
+  Future<void> _upload() async {
+    try {
+      var now = DateTime.now().millisecondsSinceEpoch;
+      String postKey = now.toString();
+      final firebaseStorageRef = FirebaseStorage.instance
+          .ref()
+          .child('uploads/')
+          .child(postKey);
+      await firebaseStorageRef.putFile(File(_image!.path));
+      final url = await firebaseStorageRef.getDownloadURL();
+    } catch (e) {
+      print('이미지 업로드 오류: $e');
+    }
+  }
 
   @override
   void getImage(ImageSource imageSource) async {

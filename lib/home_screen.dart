@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   void _makePhoneCall(String phoneNumber) async {
     if (await Permission.phone.request().isGranted) {
+
       String url = 'tel:$phoneNumber';
       if (await canLaunch(url)) {
         await launch(url);
@@ -219,7 +220,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => Messenger(),
+              builder: (context) => Messenger(
+
+              ),
             ),
           );
         },
