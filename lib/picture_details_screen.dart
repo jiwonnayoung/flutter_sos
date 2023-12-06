@@ -11,9 +11,12 @@ class PictureDeatilsScreen extends StatefulWidget {
   int? selectedRadio;
   bool radioButtonValue = false;
   bool isCheckboxChecked = false;
-  bool isSelectedCrime = false;
+  bool isSelectedCrime = true;
   bool isSelectedFire = false;
   bool isSelectedEmergency = false;
+  bool SelectedCrime = false;
+  bool SelectedFire = false;
+  bool SelectedEmergency = false;
   PageController pageController = PageController(initialPage: 0);
 
   PictureDeatilsScreen({
@@ -32,6 +35,7 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
 
+
   void setSelectedRadio(int radio) {
     setState(() {
       widget.selectedRadio = radio;
@@ -48,6 +52,61 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
         curve: Curves.ease,
       );
     });
+  }
+
+  List<String> imageUrls = [
+
+  ];
+
+  List<String> crimes = [
+    'images/crime/crime1.jpg',
+    'images/crime/crime2.jpg',
+    'images/crime/crime3.jpg',
+    'images/crime/crime4.jpg',
+  ];
+  List<String> fires = [
+    'images/fire/fire1.jpg',
+    'images/fire/fire2.jpg',
+    'images/fire/fire3.jpg',
+    'images/fire/fire4.jpg',
+  ];
+  List<String> emergencies = [
+    'images/emergency/emer1.jpg',
+    'images/emergency/emer2.jpg',
+    'images/emergency/emer3.jpg',
+    'images/emergency/emer4.jpg',
+  ];
+
+
+  List<String> selectText = [
+
+  ];
+
+  List<String> crimesText = [
+    '누가 쫓아와요',
+    '납치를 당했어요',
+    '도둑이 들었어요',
+    '누가 난동을 부려요',
+  ];
+  List<String> firesText = [
+    '집에 불이 났어요',
+    '산에 불이 났어요',
+    '불이 났어요',
+    '차에 불이 났어요',
+  ];
+  List<String> emergenciesText = [
+    '응급환자가 있어요',
+    '산에서 길 잃었어요',
+    '큰 부상을 입었어요',
+    '교통사고가 났어요',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    // 초기에 '범죄' 이미지를 보여주기 위해 SelectedOption 호출
+    SelectedOption("범죄");
+    SelectedText("범죄");
   }
 
   void toggleSelectedOption(String optionName){
@@ -73,17 +132,43 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
       }
     });
   }
+  void SelectedOption(String optionNum){
+    setState(() {
+      imageUrls = [];
+      if(optionNum == "범죄") {
+        imageUrls.addAll(crimes);
+      }
+      else if(optionNum == "화재"){
+        imageUrls.addAll(fires);
+      }
+      else if(optionNum == "긴급/구조"){
+        imageUrls.addAll(emergencies);
+      }
+    });
+  }
 
-  List<String> imageUrls = [
-    'images/byo.jpg',
-    'images/health.jpg',
-    'images/lemon.jpg',
-    'images/ong.jpg',
-  ];
+  void SelectedText(String optionText){
+    setState(() {
+      selectText = [];
+      if(optionText == "범죄") {
+        selectText.addAll(crimesText);
+      }
+      else if(optionText == "화재"){
+        selectText.addAll(firesText);
+      }
+      else if(optionText == "긴급/구조"){
+        selectText.addAll(emergenciesText);
+      }
+    });
+  }
+
+
+
+
 
   Widget buildImage(int imageIndex) {
     return FutureBuilder(
-      future: FirebaseStorage.instance.ref(imageUrls[imageIndex]).getDownloadURL(),
+      future: FirebaseStorage.instance.ref(imageUrls[0]).getDownloadURL(),
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.data != null) {
@@ -291,6 +376,16 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                     onTap: () {
                                       setState(() {
                                         toggleSelectedOption("범죄");
+                                        SelectedOption("범죄");
+                                        SelectedText("범죄");
+                                      });
+                                      setState(() {
+                                        List<String> crimes = [
+                                          'images/fire/byo.jpg',
+                                          'images/fire/fire3.jpg',
+                                          'images/fire/fire.jpg',
+                                          'images/fire/fire1.jpg',
+                                        ];
                                       });
                                     },
                                     child: Row(
@@ -316,6 +411,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                     onTap: () {
                                       setState(() {
                                         toggleSelectedOption("화재");
+                                        SelectedOption("화재");
+                                        SelectedText("화재");
                                       });
                                     },
                                     child: Row(
@@ -342,6 +439,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
 
                                       setState(() {
                                         toggleSelectedOption("긴급/구조");
+                                        SelectedOption("긴급/구조");
+                                        SelectedText("긴급/구조");
                                       });
                                     },
                                     child: Row(
@@ -444,8 +543,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                         if(snapshot.data != null) {
                                                           return Image.network(
                                                             snapshot.data!,
-                                                            width: 100,
-                                                            height: 100,
+                                                            width: 110,
+                                                            height: 110,
                                                           );
                                                         } else {
                                                           return const Text ("이미지를 찾을 수 없습니다.");
@@ -465,8 +564,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                         if(snapshot.data != null) {
                                                           return Image.network(
                                                             snapshot.data!,
-                                                            width: 50,
-                                                            height: 50,
+                                                            width: 110,
+                                                            height: 110,
                                                           );
                                                         } else {
                                                           return const Text ("이미지를 찾을 수 없습니다.");
@@ -500,14 +599,13 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
 
                                                             },
                                                           ),
-
-                                                          const Text(
-                                                            "라디오 버튼 1", // 첫 번째 라디오 버튼 옆에 나타낼 텍스트
+                                                          Text(
+                                                            (selectText?.isNotEmpty ?? false) ? selectText![0] : 'Default Text', // 첫 번째 라디오 버튼 옆에 나타낼 텍스트
                                                             style: TextStyle(fontSize: 16),
                                                           ),
                                                         ],
                                                       ),
-                                                      SizedBox(width: 32,),
+                                                      SizedBox(width: 5,),
                                                       Row(
                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                         children: [
@@ -519,8 +617,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                               setSelectedRadio(value!);
                                                             },
                                                           ),
-                                                          const Text(
-                                                            "라디오 버튼 2", // 두 번째 라디오 버튼 옆에 나타낼 텍스트
+                                                          Text(
+                                                            (selectText?.isNotEmpty ?? false) ? selectText![1] : 'Default Text', // 두 번째 라디오 버튼 옆에 나타낼 텍스트
                                                             style: TextStyle(fontSize: 16),
                                                           ),
                                                         ],
@@ -542,8 +640,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                         if(snapshot.data != null) {
                                                           return Image.network(
                                                             snapshot.data!,
-                                                            width: 50,
-                                                            height: 50,
+                                                            width: 110,
+                                                            height: 110,
                                                           );
                                                         } else {
                                                           return const Text ("이미지를 찾을 수 없습니다.");
@@ -554,6 +652,7 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                       }
                                                     },
                                                   ),
+
                                                   FutureBuilder(
                                                     future: FirebaseStorage.instance.ref(imageUrls[3]).getDownloadURL(),
                                                     builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
@@ -562,8 +661,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                         if(snapshot.data != null) {
                                                           return Image.network(
                                                             snapshot.data!,
-                                                            width: 50,
-                                                            height: 50,
+                                                            width: 110,
+                                                            height: 110,
                                                           );
                                                         } else {
                                                           return const Text ("이미지를 찾을 수 없습니다.");
@@ -597,13 +696,13 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                             },
                                                           ),
 
-                                                          const Text(
-                                                            "라디오 버튼 3", // 첫 번째 라디오 버튼 옆에 나타낼 텍스트
+                                                          Text(
+                                                            (selectText?.isNotEmpty ?? false) ? selectText![2] : 'Default Text', // 첫 번째 라디오 버튼 옆에 나타낼 텍스트
                                                             style: TextStyle(fontSize: 16),
                                                           ),
                                                         ],
                                                       ),
-                                                      SizedBox(width: 32,),
+                                                      SizedBox(width: 5,),
                                                       Row(
                                                         mainAxisAlignment: MainAxisAlignment.center,
                                                         children: [
@@ -615,8 +714,8 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                                                               setSelectedRadio(value!);
                                                             },
                                                           ),
-                                                          const Text(
-                                                            "라디오 버튼 4", // 두 번째 라디오 버튼 옆에 나타낼 텍스트
+                                                          Text(
+                                                            (selectText?.isNotEmpty ?? false) ? selectText![3] : 'Default Text', // 두 번째 라디오 버튼 옆에 나타낼 텍스트
                                                             style: TextStyle(fontSize: 16),
                                                           ),
                                                         ],

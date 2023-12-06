@@ -3,26 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 bool _sos = false;
 
 class Messenger extends StatefulWidget {
-  const Messenger({Key? key}) : super(key: key);
+  const Messenger({super.key});
 
   @override
   State<Messenger> createState() => _MessengerState();
 }
 class _MessengerState extends State<Messenger> {
-
   TextEditingController reportController = TextEditingController();
   TextEditingController attachmentController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
 
-
-
+  LatLng? _currentPosition;
 
   final String targetPhoneNumber = '112';
   XFile? _image;
@@ -34,21 +32,6 @@ class _MessengerState extends State<Messenger> {
   XFile? _imageFile;
 
   bool isCameraActive = false;
-
-  Future<void> _upload() async {
-    try {
-      var now = DateTime.now().millisecondsSinceEpoch;
-      String postKey = now.toString();
-      final firebaseStorageRef = FirebaseStorage.instance
-          .ref()
-          .child('uploads/')
-          .child(postKey);
-      await firebaseStorageRef.putFile(File(_image!.path));
-      final url = await firebaseStorageRef.getDownloadURL();
-    } catch (e) {
-      print('이미지 업로드 오류: $e');
-    }
-  }
 
   @override
   void getImage(ImageSource imageSource) async {
@@ -70,7 +53,7 @@ class _MessengerState extends State<Messenger> {
       home: Scaffold(
         backgroundColor: Colors.white,
         body: Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -79,7 +62,7 @@ class _MessengerState extends State<Messenger> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.arrow_back, color: Colors.black),
+                      icon: const Icon(Icons.arrow_back, color: Colors.black),
                       onPressed: () {
                         Navigator.pop(context);
                       },
@@ -87,19 +70,19 @@ class _MessengerState extends State<Messenger> {
                   ],
                 ),
 
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
 
-                Text(
+                const Text(
                   ' 신고내용',
                   style: TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
                 TextField(
                   controller: reportController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: '   신고 내용을 입력해주세요.',
                     hintText: '간략히 입력해주세요.',
                     focusedBorder: OutlineInputBorder(
@@ -114,7 +97,7 @@ class _MessengerState extends State<Messenger> {
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
-                SizedBox(height: 5.0),
+                const SizedBox(height: 5.0),
                 Row(
                   children: [
                     Checkbox(
@@ -128,18 +111,18 @@ class _MessengerState extends State<Messenger> {
                         });
                       },
                     ),
-                    Text('음성통화 곤란 시 체크 (청각장애인,위험상황 등)'),
+                    const Text('음성통화 곤란 시 체크 (청각장애인,위험상황 등)'),
                   ],
                 ),
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
 
-                Divider(
+                const Divider(
                   color: Colors.black,
                   height: 1.0,
                   thickness: 1.0,
                 ),
-                SizedBox(height: 20.0),
-                Text(
+                const SizedBox(height: 20.0),
+                const Text(
                   ' 첨부파일',
                   style: TextStyle(
                     fontSize: 20.0,
@@ -147,7 +130,7 @@ class _MessengerState extends State<Messenger> {
                   ),
                 ),
 
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
                 // TextFormField 위에 _buildPhotoArea() 추가
                 Stack(
                   children: [
@@ -170,22 +153,22 @@ class _MessengerState extends State<Messenger> {
                 ),
 
 
-                SizedBox(height: 10.0),
+                const SizedBox(height: 10.0),
 
                 Row(
                   children: [
-                    Text("  "),
+                    const Text("  "),
                     Container(
                       width: 70.0,
                       height: 38.0,
-                      padding: EdgeInsets.symmetric(horizontal: 14.0, vertical: 0),
-                      decoration: BoxDecoration(
+                      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 0),
+                      decoration: const BoxDecoration(
                         borderRadius: BorderRadius.all(Radius.circular(6.0)),
                         shape: BoxShape.rectangle,
                         color: Colors.blue,
                       ),
                       child: PopupMenuButton<String>(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.add,
                           size: 15.0,
                           color: Colors.black54,
@@ -201,11 +184,11 @@ class _MessengerState extends State<Messenger> {
                           });
                         },
                         itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                          PopupMenuItem<String>(
+                          const PopupMenuItem<String>(
                             value: '사진 찍기',
                             child: Text('사진 찍기', style: TextStyle(fontSize: 18.0, color: Colors.black54, fontWeight: FontWeight.bold)),
                           ),
-                          PopupMenuItem<String>(
+                          const PopupMenuItem<String>(
                             value: '사진 갤러리',
                             child: Text('사진 갤러리', style: TextStyle(fontSize: 18.0, color: Colors.black54, fontWeight: FontWeight.bold)),
                           ),
@@ -216,17 +199,17 @@ class _MessengerState extends State<Messenger> {
                 ),
 
 
-                SizedBox(height: 15.0),
+                const SizedBox(height: 15.0),
 
-                Divider(
+                const Divider(
                   color: Colors.black,
                   height: 1.0,
                   thickness: 1.0,
                 ),
 
-                SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
 
-                Text(
+                const Text(
                   ' 재난위치 확인',
                   style: TextStyle(
                     fontSize: 20.0,
@@ -234,17 +217,17 @@ class _MessengerState extends State<Messenger> {
                   ),
                 ),
 
-                SizedBox(height: 15.0),
+                const SizedBox(height: 15.0),
 
                 Row(
                   children: [
-                    Text("  "),
+                    const Text("  "),
                     ElevatedButton(
                       onPressed: () {
-                        // 현재 위치 주소 확인 버튼이 클릭될 때 수행할 작업
+                        _getCurrentLocation();// 현재 위치 주소 확인 버튼이 클릭될 때 수행할 작업
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+                      child: const Padding(
+                        padding: EdgeInsets.only(left: 15.0, right: 15.0),
                         child: Text(
                           '+',
                           style: TextStyle(
@@ -255,9 +238,9 @@ class _MessengerState extends State<Messenger> {
                         ),
                       ),
                     ),
-                    SizedBox(width: 10.0),
-                    Text("    "),
-                    Text(
+                    const SizedBox(width: 10.0),
+                    const Text("    "),
+                    const Text(
                       '현재 위치 주소',
                       style: TextStyle(
                         fontSize: 15.0,
@@ -266,17 +249,18 @@ class _MessengerState extends State<Messenger> {
                     ),
                   ],
                 ),
-                SizedBox(height: 15.0),
+                const SizedBox(height: 15.0),
 
-                Divider(
+                const Divider(
                   color: Colors.black,
                   height: 1.0,
                   thickness: 1.0,
                 ),
 
-                SizedBox(height: 20.0),
+                const SizedBox(height: 20.0),
 
-                Text(
+
+                const Text(
                   ' 신고자 정보',
                   style: TextStyle(
                     fontSize: 20.0,
@@ -284,19 +268,19 @@ class _MessengerState extends State<Messenger> {
                   ),
                 ),
 
-                SizedBox(height: 15.0),
+                const SizedBox(height: 15.0),
 
                 Row(
                   children: [
-                    Text(
+                    const Text(
                       '이름       ',
                       style: TextStyle(fontSize: 15.0),
                     ),
-                    SizedBox(width: 10.0),
+                    const SizedBox(width: 10.0),
                     Flexible(
                       child: TextField(
                         controller: nameController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: '이름을 입력해주세요.',
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10.0)),
@@ -314,19 +298,19 @@ class _MessengerState extends State<Messenger> {
                   ],
                 ),
 
-                SizedBox(height: 15.0),
+                const SizedBox(height: 15.0),
 
                 Row(
                   children: [
-                    Text(
+                    const Text(
                       '전화번호',
                       style: TextStyle(fontSize: 15.0),
                     ),
-                    SizedBox(width: 10.0),
+                    const SizedBox(width: 10.0),
                     Flexible(
                       child: TextField(
                         controller: phoneNumberController,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           labelText: '전화번호를 입력해주세요.',
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10.0)),
@@ -344,7 +328,7 @@ class _MessengerState extends State<Messenger> {
                   ],
                 ),
 
-                SizedBox(height: 15.0),
+                const SizedBox(height: 15.0),
 
                 Row(
                   children: [
@@ -353,8 +337,8 @@ class _MessengerState extends State<Messenger> {
                         onPressed: () {
                           submitReport(context);
                         },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                        child: const Padding(
+                          padding: EdgeInsets.all(8.0),
                           child: Text(
                             '신고하기',
                             style: TextStyle(
@@ -386,7 +370,7 @@ class _MessengerState extends State<Messenger> {
           color: Colors.grey,
         ),
         if (_image != null)
-          Container(
+          SizedBox(
             width: 300,
             height: 300,
             child: Image.file(File(_image!.path)),
@@ -431,5 +415,25 @@ class _MessengerState extends State<Messenger> {
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<void> _getCurrentLocation() async {
+    Position position = await getCurrentLocation();
+    setState(() {
+      _currentPosition = LatLng(position.latitude, position.longitude);
+    });
+  }
+
+  Future<Position> getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    double latitude = position.latitude;
+    double longitude = position.longitude;
+
+    print('현재 위치의 위도: $latitude, 경도: $longitude');
+
+    return position;
   }
 }
