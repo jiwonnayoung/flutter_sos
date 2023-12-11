@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class PictureDeatilsScreen extends StatefulWidget {
@@ -96,7 +97,7 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
   ];
   List<String> emergenciesText = [
     '응급환자가 있어요',
-    '산에서 길 잃었어요',
+    '조난 당했어요',
     '큰 부상을 입었어요',
     '교통사고가 났어요',
   ];
@@ -762,23 +763,39 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                               ),
                             ),
                             const SizedBox(height: 12,),
-                            Container(
-                              padding: const EdgeInsets.only(left: 15, right: 200),
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                child: RichText(
-                                  text: const TextSpan(
-                                    children: [
-                                      WidgetSpan(child: Icon(MaterialCommunityIcons.map_marker, size: 20),),
-                                      TextSpan(
-                                        text: "  재난위치  ",
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.only(left: 15, right: 200),
+                                  child: ElevatedButton(
+                                    onPressed: () {},
+                                    child: RichText(
+                                      text: const TextSpan(
+                                        children: [
+                                          WidgetSpan(child: Icon(MaterialCommunityIcons.map_marker, size: 20),),
+                                          TextSpan(
+                                            text: "  재난위치  ",
+                                          ),
+                                          WidgetSpan(child: Icon(Icons.add, size: 20),),
+                                        ],
                                       ),
-                                      WidgetSpan(child: Icon(Icons.add, size: 20),),
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 15, top: 8),
+                                  child: Text(
+                                    '주소: ',
+                                    style: TextStyle(
+                                      fontSize: 15.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
+
                             const SizedBox(height: 20,),
                             Container(
                               padding: const EdgeInsets.only(left: 10, right: 260),
@@ -850,7 +867,9 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
                             ),
                             const SizedBox(height: 12,),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                sendReportToFirestore();
+                              },
                               style: ElevatedButton.styleFrom(
                                 minimumSize: const Size(250, 50),
                               ),
@@ -875,5 +894,52 @@ class _PictureDeatilsScreenState extends State<PictureDeatilsScreen> {
         ),
       ),
     );
+  }
+
+  // sendReportToFirestore 함수와 getSelectedOptionText, getSelectedRadioText 함수 추가
+  void sendReportToFirestore() async {
+    String selectedOption = getSelectedOptionText();
+    String selectedRadioText = getSelectedRadioText();
+
+    // Firestore에 데이터 추가
+    await FirebaseFirestore.instance.collection('reports').add({
+      'name': nameController.text,
+      'phone': phoneNumberController.text,
+      'selectedOption': selectedOption,
+      'selectedRadioText': selectedRadioText,
+      'isVoiceCallDifficult': widget.isCheckboxChecked,
+      // 다른 필요한 데이터도 추가할 수 있습니다.
+    });
+
+    // 전송 후 필요한 작업 수행
+    // 예: 전송 완료 메시지 표시, 페이지 이동 등
+  }
+
+  String getSelectedOptionText() {
+    // 현재 선택된 옵션을 반환
+    if (widget.isSelectedCrime) {
+      return "범죄";
+    } else if (widget.isSelectedFire) {
+      return "화재";
+    } else if (widget.isSelectedEmergency) {
+      return "긴급/구조";
+    }
+    return "";
+  }
+
+  String getSelectedRadioText() {
+    // 현재 선택된 라디오 버튼의 텍스트를 반환
+    switch (widget.selectedRadio) {
+      case 1:
+        return selectText[0];
+      case 2:
+        return selectText[1];
+      case 3:
+        return selectText[2];
+      case 4:
+        return selectText[3];
+      default:
+        return "";
+    }
   }
 }

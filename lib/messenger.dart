@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_sos/messenger_location.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 bool _sos = false;
 
@@ -19,6 +21,10 @@ class _MessengerState extends State<Messenger> {
   TextEditingController attachmentController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController phoneNumberController = TextEditingController();
+  MapSampleLocation mapSampleLocation = MapSampleLocation();
+
+  String receivedAddress = '';
+
 
   LatLng? _currentPosition;
 
@@ -44,8 +50,11 @@ class _MessengerState extends State<Messenger> {
     }
   }
 
-
-
+  @override
+  void initState() {
+    super.initState();
+    getAddressFromFirestore();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -219,29 +228,37 @@ class _MessengerState extends State<Messenger> {
 
                 const SizedBox(height: 15.0),
 
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("  "),
-                    ElevatedButton(
-                      onPressed: () {
-                        _getCurrentLocation();// 현재 위치 주소 확인 버튼이 클릭될 때 수행할 작업
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.only(left: 15.0, right: 15.0),
-                        child: Text(
-                          '+',
-                          style: TextStyle(
-                            fontSize: 18.0,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.bold,
+                    Row(
+                      children: [
+                        const Text("  "),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => MapSampleLocation()),
+                            ); // 현재 위치 주소 확인 버튼이 클릭될 때 수행할 작업
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.only(left: 15.0, right: 15.0),
+                            child: Text(
+                              '+',
+                              style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(width: 10.0),
+                        const Text("    "),
+                      ],
                     ),
-                    const SizedBox(width: 10.0),
-                    const Text("    "),
-                    const Text(
-                      '현재 위치 주소',
+                    Text(
+                      '주소: $receivedAddress',
                       style: TextStyle(
                         fontSize: 15.0,
                         fontWeight: FontWeight.bold,
@@ -249,6 +266,10 @@ class _MessengerState extends State<Messenger> {
                     ),
                   ],
                 ),
+
+
+
+
                 const SizedBox(height: 15.0),
 
                 const Divider(
@@ -386,12 +407,15 @@ class _MessengerState extends State<Messenger> {
     String attachment = _image != null ? _image!.path : '';
     String name = nameController.text;
     String phoneNumber = phoneNumberController.text;
+    String sosMessage = _sos ? '음성통화 곤란' : '음성통화 가능';
 
     String smsMessage = '''
     신고 내용: $reportContent
     첨부 파일: $attachment
     이름: $name
     전화번호: $phoneNumber
+    상황: $sosMessage
+    주소: $receivedAddress
     ''';
 
     launchSMSApp(targetPhoneNumber, smsMessage);
@@ -417,23 +441,36 @@ class _MessengerState extends State<Messenger> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
-    Position position = await getCurrentLocation();
-    setState(() {
-      _currentPosition = LatLng(position.latitude, position.longitude);
-    });
+  Future<void> getAddressFromFirestore() async {
+    var result = await FirebaseFirestore.instance.collection('addresses').doc('location').get();
+
+    if (result.exists) {
+      dynamic data = result.data();
+
+      // Check if 'address' field exists and is not null
+      if (data != null && data.containsKey('address')) {
+        String addressRaw = data['address'];
+
+        // Remove the curly braces and whitespace from the addressRaw
+        String address = addressRaw.replaceAll(RegExp(r'[{address: } ]'), '');
+
+        // Print or use the 'address' variable as needed
+        print("받은 주소: $address");
+
+        // Update the state if necessary
+        setState(() {
+          receivedAddress = address;
+
+
+        });
+      } else {
+        print("Firestore 데이터에서 'address' 필드가 존재하지 않거나 null입니다.");
+      }
+    } else {
+      print("Firestore에 문서가 존재하지 않습니다.");
+    }
   }
 
-  Future<Position> getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.requestPermission();
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    double latitude = position.latitude;
-    double longitude = position.longitude;
 
-    print('현재 위치의 위도: $latitude, 경도: $longitude');
 
-    return position;
-  }
 }
